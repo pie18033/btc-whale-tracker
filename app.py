@@ -8,7 +8,7 @@ import time
 
 st.set_page_config(page_title="加密貨幣大戶籌碼監控", layout="wide")
 
-# CSS 樣式 (維持手機版自動適應)
+# CSS 樣式
 st.markdown("""
     <style>
             .stApp { background-color: #000000; color: #FFFFFF; }
@@ -119,18 +119,33 @@ def render_section(symbol, table_name, price_col, color_hex):
     fig_line.add_trace(go.Scatter(x=df["time"], y=df["ls_ratio"], name="持倉比", line=dict(color="#FFFFFF", width=2.5)), row=3, col=1)
     fig_line.add_trace(go.Scatter(x=df["time"], y=df["ls_acc_ratio"], name="帳戶比", line=dict(color="#00e676", width=2.5)), row=3, col=1)
     
-    # 🚀 這裡將 hovermode="x unified" 重新加回來了！
+    # 🚀 優化 1：徹底黑化游標提示框
     fig_line.update_layout(
         template="plotly_dark", 
         paper_bgcolor='rgba(0,0,0,0)', 
         plot_bgcolor='rgba(0,0,0,0)', 
         height=550, 
         hovermode="x unified", 
+        hoverlabel=dict(
+            bgcolor="rgba(20, 20, 20, 0.9)", # 深灰色半透明背景
+            font_size=12,
+            font_color="white",              # 字體改為純白
+            bordercolor="rgba(255, 255, 255, 0.2)" # 淡淡的銀色邊框
+        ),
         margin=dict(t=50, b=10, l=10, r=40), 
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(color="#FFFFFF", size=12))
     )
     
-    fig_line.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255, 255, 255, 0.08)', showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', mirror=True, ticks="outside", tickwidth=1, tickcolor='rgba(255, 255, 255, 0.08)', ticklen=5, tickangle=-45, tickformat="%m-%d %H:%M")
+    # 🚀 優化 2：把粗虛線變成優雅的極細半透明實線
+    fig_line.update_xaxes(
+        showgrid=True, gridwidth=1, gridcolor='rgba(255, 255, 255, 0.08)', 
+        showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', 
+        mirror=True, ticks="outside", tickwidth=1, tickcolor='rgba(255, 255, 255, 0.08)', 
+        ticklen=5, tickangle=-45, tickformat="%m-%d %H:%M",
+        showspikes=True, spikemode="across", spikedash="solid", # 改為實線
+        spikethickness=1, spikecolor="rgba(255, 255, 255, 0.3)" # 1px 半透明白色
+    )
+    
     fig_line.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255, 255, 255, 0.08)', showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', mirror=True, ticks="outside", tickwidth=1, tickcolor='rgba(255, 255, 255, 0.08)', ticklen=5)
     fig_line.update_layout(yaxis=dict(tickfont=dict(color=color_hex, size=11)), yaxis2=dict(tickfont=dict(color="#b2ebf2", size=11)), yaxis3=dict(tickfont=dict(color="#FFFFFF", size=11)))
     
