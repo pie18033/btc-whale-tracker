@@ -92,8 +92,8 @@ try:
         
         st.divider()
         
-        # 趨勢圖表調色
-        fig_line = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[0.4, 0.2, 0.2, 0.2], specs=[[{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": False}], [{"secondary_y": False}]])
+        # 增加子圖表間距，避免外框打架
+        fig_line = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.04, row_heights=[0.4, 0.2, 0.2, 0.2], specs=[[{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": False}], [{"secondary_y": False}]])
         
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["btc_price"], name="價格", line=dict(color="#ffd700", width=3)), row=1, col=1)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["oi_total_usd"], name="OI總額", line=dict(color="#b39ddb", width=2, dash='dot')), row=1, col=1, secondary_y=True)
@@ -102,14 +102,28 @@ try:
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["ls_ratio"], name="多空比", line=dict(color="#FFFFFF", width=2.5)), row=3, col=1)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["fund_rate"], name="費率", mode="lines+markers", line=dict(color="#ffe0b2")), row=4, col=1)
         
-        fig_line.update_layout(template="plotly_dark", paper_bgcolor=TRANSPARENT, plot_bgcolor=TRANSPARENT, height=700, font=CHART_FONT, hovermode="x unified")
+        # 1. 🚀 圖例字體強行變白變大
+        fig_line.update_layout(
+            template="plotly_dark", paper_bgcolor=TRANSPARENT, plot_bgcolor=TRANSPARENT, height=750, font=CHART_FONT, hovermode="x unified",
+            legend=dict(font=dict(color="#FFFFFF", size=15))
+        )
         
-        fig_line.update_xaxes(showgrid=True, gridwidth=1, gridcolor=LIGHT_GRID, showline=True, linewidth=1, linecolor=LIGHT_GRID, ticks="outside", tickwidth=1, tickcolor=LIGHT_GRID, ticklen=5)
-        fig_line.update_yaxes(showgrid=True, gridwidth=1, gridcolor=LIGHT_GRID, showline=True, linewidth=1, linecolor=LIGHT_GRID, ticks="outside", tickwidth=1, tickcolor=LIGHT_GRID, ticklen=5)
+        # 2. 🚀 加入 mirror=True 產生各圖層的獨立外框 (分隔線)
+        fig_line.update_xaxes(showgrid=True, gridwidth=1, gridcolor=LIGHT_GRID, showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', mirror=True, ticks="outside", tickwidth=1, tickcolor=LIGHT_GRID, ticklen=5)
+        fig_line.update_yaxes(showgrid=True, gridwidth=1, gridcolor=LIGHT_GRID, showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', mirror=True, ticks="outside", tickwidth=1, tickcolor=LIGHT_GRID, ticklen=5)
+        
+        # 3. 🚀 Y軸字體顏色完美對應
+        fig_line.update_layout(
+            yaxis=dict(tickfont=dict(color="#ffd700", size=13)),   # 第一排左：價格 (黃)
+            yaxis2=dict(tickfont=dict(color="#b39ddb", size=13)),  # 第一排右：OI (淡紫)
+            yaxis3=dict(tickfont=dict(color="#b2ebf2", size=13)),  # 第二排：多空資金 (以多單冰藍色為代表)
+            yaxis4=dict(tickfont=dict(color="#FFFFFF", size=13)),  # 第三排：多空比 (白)
+            yaxis5=dict(tickfont=dict(color="#ffe0b2", size=13))   # 第四排：費率 (淡橘)
+        )
         
         st.plotly_chart(fig_line, use_container_width=True)
 
-        # HTML 表格 (修正了這裡的 1e6 語法錯誤)
+        # HTML 表格
         st.markdown("**📋 歷史巡檢紀錄 (最新 20 筆)**")
         df_20 = df_history.tail(20).iloc[::-1]
         
