@@ -168,3 +168,9 @@ except Exception as e:
 
 time.sleep(300)
 st.rerun()
+
+from streamlit_autorefresh import st_autorefresh
+
+# 每 300,000 毫秒（5 分鐘）自動刷新網頁一次
+# 這會強迫 Streamlit 重新跑一次整個腳本，抓取 Supabase 最新資料
+st_autorefresh(interval=300000, key="data_refresher")
