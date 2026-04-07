@@ -51,7 +51,8 @@ SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def get_data_from_db():
-    response = supabase.table("whale_data").select("*").order("time", desc=True).limit(200).execute()
+    # 約第 45 行
+    response = supabase.table("whale_data").select("*").order("time", desc=True).limit(1500).execute()
     df = pd.DataFrame(response.data)
     if not df.empty:
         df = df.sort_values(by="time", ascending=True)
@@ -140,14 +141,14 @@ try:
         
         st.plotly_chart(fig_line, use_container_width=True)
 
-        # 🚀 渲染頂部最新 20 筆表格
+        # 渲染頂部最新 20 筆
         st.markdown("**📋 歷史巡檢紀錄 (最新 20 筆)**")
         df_20 = df_history.tail(20).iloc[::-1]
         st.markdown(f'<div class="table-wrapper">{build_html_table(df_20)}</div>', unsafe_allow_html=True)
 
-        # 🚀 渲染底部展開的 200 筆表格 (使用黑魂表格 + 獨立滑動軸)
-        with st.expander("📂 展開完整數據紀錄 (200 筆)"):
-            st.markdown(f'<div class="scrollable-wrapper">{build_html_table(df_history.iloc[::-1])}</div>', unsafe_allow_html=True)
+        # 展開改為 1500 筆
+        with st.expander("📂 展開完整數據紀錄 (1500 筆 / 約一個月)"):
+        st.markdown(f'<div class="scrollable-wrapper">{build_html_table(df_history.iloc[::-1])}</div>', unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"連線失敗: {e}")
