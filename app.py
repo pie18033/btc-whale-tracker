@@ -73,8 +73,10 @@ try:
             c4, c5, c6 = st.columns(3)
             c4.metric("多單資金", f"${latest['long_vol_usd']/1e6:,.0f} M")
             c5.metric("空單資金", f"${latest['short_vol_usd']/1e6:,.0f} M")
-            c6.metric("資金費率", f"{latest['fund_rate'] * 100:.4f}%")
+            # 修改這裡：把原本的「資金費率」改為「多空持倉比」
+            c6.metric("多空持倉比", round(latest['ls_ratio'], 4))
             
+            # 下方的圓餅圖保持原樣
             fig_pos = px.pie(values=[latest['long_vol_usd'], latest['short_vol_usd']], names=["做多", "做空"], hole=0.4,
                              color=["做多", "做空"], color_discrete_map={"做多": "#00e5ff", "做空": "#ff5252"})
             fig_pos.update_layout(height=170, margin=dict(t=0, b=0, l=0, r=0), showlegend=False, template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)")
