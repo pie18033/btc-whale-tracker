@@ -9,7 +9,7 @@ import time
 
 st.set_page_config(page_title="比特幣大戶籌碼監控", layout="wide")
 
-# 1. CSS 樣式
+# CSS 樣式
 st.markdown("""
     <style>
             .stApp { background-color: #000000; color: #FFFFFF; }
@@ -62,16 +62,13 @@ try:
             l_acc = latest.get('long_acc_ratio', 0.5)
             s_acc = latest.get('short_acc_ratio', 0.5)
             st.markdown("#### 👥 帳戶共識 (人頭數)")
-            # 移除 delta
             st.metric("多空帳戶比", f"{l_acc/s_acc:.4f}" if s_acc != 0 else "0")
             
             fig_acc = px.pie(values=[l_acc, s_acc], names=["做多", "做空"], hole=0.6,
                              color=["做多", "做空"], color_discrete_map={"做多": "#00e5ff", "做空": "#ff5252"})
-            # 釘死圓餅圖位置 (不自動排序)
             fig_acc.update_traces(sort=False)
             fig_acc.add_annotation(text="帳戶", showarrow=False, font=dict(size=24, color="white"))
             
-            # 強制圖例字體為白色
             fig_acc.update_layout(height=240, margin=dict(t=10, b=10, l=10, r=10), 
                                  showlegend=True, template="plotly_dark", 
                                  paper_bgcolor=TRANSPARENT, font=CHART_FONT,
@@ -80,16 +77,13 @@ try:
 
         with col_right:
             st.markdown("#### 💰 資金實力 (倉位量)")
-            # 移除 delta
             st.metric("多空持倉比", f"{latest['ls_ratio']:.4f}")
             
             fig_pos = px.pie(values=[latest['long_vol_usd'], latest['short_vol_usd']], names=["做多", "做空"], hole=0.6,
                              color=["做多", "做空"], color_discrete_map={"做多": "#00e5ff", "做空": "#ff5252"})
-            # 釘死圓餅圖位置 (不自動排序)
             fig_pos.update_traces(sort=False)
             fig_pos.add_annotation(text="資金", showarrow=False, font=dict(size=24, color="white"))
             
-            # 強制圖例字體為白色
             fig_pos.update_layout(height=240, margin=dict(t=10, b=10, l=10, r=10), 
                                   showlegend=True, template="plotly_dark", 
                                   paper_bgcolor=TRANSPARENT, font=CHART_FONT,
@@ -101,17 +95,11 @@ try:
         # 趨勢圖表調色
         fig_line = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[0.4, 0.2, 0.2, 0.2], specs=[[{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": False}], [{"secondary_y": False}]])
         
-        # BTC 價格: 黃色
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["btc_price"], name="價格", line=dict(color="#ffd700", width=3)), row=1, col=1)
-        # OI 總額: 淡紫
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["oi_total_usd"], name="OI總額", line=dict(color="#b39ddb", width=2, dash='dot')), row=1, col=1, secondary_y=True)
-        # 多單資金: 偏白淡青色
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["long_vol_usd"], name="多單$", line=dict(color="#b2ebf2", width=2)), row=2, col=1)
-        # 空單資金: 偏白淡粉紅
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["short_vol_usd"], name="空單$", line=dict(color="#ffcdd2", width=2)), row=2, col=1)
-        # 多空比: 白色 (維持)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["ls_ratio"], name="多空比", line=dict(color="#FFFFFF", width=2.5)), row=3, col=1)
-        # 資金費率: 超淡淺橘色
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["fund_rate"], name="費率", mode="lines+markers", line=dict(color="#ffe0b2")), row=4, col=1)
         
         fig_line.update_layout(template="plotly_dark", paper_bgcolor=TRANSPARENT, plot_bgcolor=TRANSPARENT, height=700, font=CHART_FONT, hovermode="x unified")
@@ -121,7 +109,7 @@ try:
         
         st.plotly_chart(fig_line, use_container_width=True)
 
-        # HTML 表格
+        # HTML 表格 (修正了這裡的 1e6 語法錯誤)
         st.markdown("**📋 歷史巡檢紀錄 (最新 20 筆)**")
         df_20 = df_history.tail(20).iloc[::-1]
         
@@ -130,4 +118,16 @@ try:
             <tr>
                 <th>時間</th><th>價格</th><th>OI總額(M)</th><th>多單資金(M)</th><th>空單資金(M)</th><th>多空比</th><th>費率</th>
             </tr>
-            {"".join([f"<tr><td>{r.time}</td><td>${r.btc_price:,}</td><td>{r.oi_total_usd/1e6:.1f}M</td><td>{r.long_vol_usd/1e
+            {"".join([f"<tr><td>{r.time}</td><td>${r.btc_price:,}</td><td>{r.oi_total_usd/1000000:.1f}M</td><td>{r.long_vol_usd/1000000:.1f}M</td><td>{r.short_vol_usd/1000000:.1f}M</td><td>{r.ls_ratio:.4f}</td><td>{r.fund_rate*100:.4f}%</td></tr>" for i, r in df_20.iterrows()])}
+        </table>
+        """
+        st.markdown(html_table, unsafe_allow_html=True)
+
+        with st.expander("📂 展開原始數據 (200 筆)"):
+            st.dataframe(df_history.iloc[::-1], use_container_width=True)
+
+except Exception as e:
+    st.error(f"連線失敗: {e}")
+
+time.sleep(300)
+st.rerun()
