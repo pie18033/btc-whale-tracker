@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from supabase import create_client
 import time
-
+from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="加密貨幣大戶籌碼監控", layout="wide")
 
 # CSS 樣式
@@ -165,12 +165,10 @@ try:
     render_section("ETH", "eth_whale_data", "eth_price", "#a0a0ff")
 except Exception as e:
     st.error(f"連線失敗: {e}")
+    
+st_autorefresh(interval=300000, key="data_refresher")
 
-time.sleep(300)
-st.rerun()
 
-from streamlit_autorefresh import st_autorefresh
 
 # 每 300,000 毫秒（5 分鐘）自動刷新網頁一次
-# 這會強迫 Streamlit 重新跑一次整個腳本，抓取 Supabase 最新資料
-st_autorefresh(interval=300000, key="data_refresher")
+
