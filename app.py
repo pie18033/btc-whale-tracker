@@ -51,7 +51,6 @@ def get_data_from_db():
     df = pd.DataFrame(response.data)
     if not df.empty:
         df = df.sort_values(by="time", ascending=True)
-        # 轉換時間並 +8 小時對齊台灣時區
         df['time'] = pd.to_datetime(df['time']) + pd.Timedelta(hours=8)
         for col in ["btc_price", "long_vol_usd", "short_vol_usd"]:
             if col in df.columns:
@@ -72,13 +71,13 @@ def build_html_table(df_to_render):
     for _, r in df_to_render.iterrows():
         time_str = r.time.strftime('%Y-%m-%d %H:%M:%S')
         acc_ratio_str = f"{r.ls_acc_ratio:.4f}" if pd.notnull(r.get('ls_acc_ratio')) else "N/A"
-        # 移除 OI 與 費率，並交換帳戶比與持倉比位置
-        rows.append(f"<tr><td>{time_str}</td><td>${r.btc_price:,}</td><td>{r.long_vol_usd/1000000:.1f}M</td><td>{r.short_vol_usd/1000000:.1f}M</td><td>{acc_ratio_str}</td><td>{r.ls_ratio:.4f}</td></tr>")
+        # 🚀 這裡將除數改為 10 億 (1000000000)，並保留 3 位小數搭配單位 'B'
+        rows.append(f"<tr><td>{time_str}</td><td>${r.btc_price:,}</td><td>{r.long_vol_usd/1000000000:.3f}B</td><td>{r.short_vol_usd/1000000000:.3f}B</td><td>{acc_ratio_str}</td><td>{r.ls_ratio:.4f}</td></tr>")
     
     return f"""
     <table class="custom-table">
         <tr>
-            <th>時間</th><th>價格</th><th>多單資金(M)</th><th>空單資金(M)</th><th>帳戶多空比</th><th>持倉多空比</th>
+            <th>時間</th><th>價格</th><th>多單資金(B)</th><th>空單資金(B)</th><th>帳戶多空比</th><th>持倉多空比</th>
         </tr>
         {"".join(rows)}
     </table>
@@ -120,7 +119,6 @@ try:
         
         st.divider()
         
-        # 精簡為 3 行的子圖表，移除 OI 總額與資金費率
         fig_line = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.04, row_heights=[0.4, 0.3, 0.3])
         
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["btc_price"], name="價格", line=dict(color="#ffd700", width=3)), row=1, col=1)
@@ -132,8 +130,6 @@ try:
         fig_line.update_layout(template="plotly_dark", paper_bgcolor=TRANSPARENT, plot_bgcolor=TRANSPARENT, height=650, font=CHART_FONT, hovermode="x unified", margin=dict(t=50, b=10, l=10, r=55), legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(color="#FFFFFF", size=13)))
         fig_line.update_xaxes(showgrid=True, gridwidth=1, gridcolor=LIGHT_GRID, showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', mirror=True, ticks="outside", tickwidth=1, tickcolor=LIGHT_GRID, ticklen=5, tickangle=-45, tickformat="%m-%d %H:%M")
         fig_line.update_yaxes(showgrid=True, gridwidth=1, gridcolor=LIGHT_GRID, showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', mirror=True, ticks="outside", tickwidth=1, tickcolor=LIGHT_GRID, ticklen=5)
-        
-        # 更新三個 Y 軸的顏色對應
         fig_line.update_layout(yaxis=dict(tickfont=dict(color="#ffd700", size=12)), yaxis2=dict(tickfont=dict(color="#b2ebf2", size=12)), yaxis3=dict(tickfont=dict(color="#FFFFFF", size=12)))
         
         st.plotly_chart(fig_line, use_container_width=True)
