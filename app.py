@@ -8,7 +8,7 @@ import time
 
 st.set_page_config(page_title="加密貨幣大戶籌碼監控", layout="wide")
 
-# CSS 樣式 (加入強大的 RWD 手機版自動適應)
+# CSS 樣式 (維持手機版自動適應)
 st.markdown("""
     <style>
             .stApp { background-color: #000000; color: #FFFFFF; }
@@ -21,22 +21,19 @@ st.markdown("""
             .table-wrapper { overflow-x: auto; margin-top: 10px; }
             .scrollable-wrapper { max-height: 400px; overflow-y: auto; overflow-x: auto; border: 1px solid #333; }
             
-            /* 電腦版基礎表格設定 */
             .custom-table { width: 100%; border-collapse: collapse; background-color: #000000; font-size: 14px; text-align: center; }
             .custom-table th { background-color: #1a1a1a; color: #ffd700; text-align: center; padding: 10px 6px; position: sticky; top: 0; z-index: 1; white-space: nowrap; border-bottom: 2px solid #333; }
             .custom-table td { padding: 10px 6px; border-bottom: 1px solid #222; white-space: nowrap; }
             
-            /* 捲軸美化 */
             ::-webkit-scrollbar { width: 6px; height: 6px; }
             ::-webkit-scrollbar-track { background: #000000; }
             ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
             ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-            /* 🚀 手機版特化設定 (螢幕小於 600px 時自動觸發) */
             @media (max-width: 600px) {
-                .custom-table { font-size: 11px; } /* 縮小表格字體 */
-                .custom-table th, .custom-table td { padding: 8px 3px; } /* 縮減間距以擠進畫面 */
-                [data-testid="stMetricValue"] { font-size: 1.8rem !important; } /* 縮小頂部數字 */
+                .custom-table { font-size: 11px; } 
+                .custom-table th, .custom-table td { padding: 8px 3px; } 
+                [data-testid="stMetricValue"] { font-size: 1.8rem !important; } 
             }
     </style>
     """, unsafe_allow_html=True)
@@ -65,12 +62,10 @@ def get_data(table_name, price_col):
 def build_table(df_render):
     rows = []
     for _, r in df_render.iterrows():
-        # 🚀 時間格式瘦身：只顯示 月-日 時:分
         time_str = r.time.strftime('%m-%d %H:%M')
         acc_ratio_str = f"{r.ls_acc_ratio:.4f}" if pd.notnull(r.get('ls_acc_ratio')) else "N/A"
         rows.append(f"<tr><td>{time_str}</td><td>${r.price:,}</td><td>{r.long_vol_usd/1e9:.3f}</td><td>{r.short_vol_usd/1e9:.3f}</td><td>{acc_ratio_str}</td><td>{r.ls_ratio:.4f}</td></tr>")
     
-    # 🚀 標題字眼極簡化
     return f"""
     <table class="custom-table">
         <tr>
@@ -124,7 +119,16 @@ def render_section(symbol, table_name, price_col, color_hex):
     fig_line.add_trace(go.Scatter(x=df["time"], y=df["ls_ratio"], name="持倉比", line=dict(color="#FFFFFF", width=2.5)), row=3, col=1)
     fig_line.add_trace(go.Scatter(x=df["time"], y=df["ls_acc_ratio"], name="帳戶比", line=dict(color="#00e676", width=2.5)), row=3, col=1)
     
-    fig_line.update_layout(template="plotly_dark", paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)', height=550, margin=dict(t=50, b=10, l=10, r=40), legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(color="#FFFFFF", size=12)))
+    # 🚀 這裡將 hovermode="x unified" 重新加回來了！
+    fig_line.update_layout(
+        template="plotly_dark", 
+        paper_bgcolor='rgba(0,0,0,0)', 
+        plot_bgcolor='rgba(0,0,0,0)', 
+        height=550, 
+        hovermode="x unified", 
+        margin=dict(t=50, b=10, l=10, r=40), 
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, font=dict(color="#FFFFFF", size=12))
+    )
     
     fig_line.update_xaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255, 255, 255, 0.08)', showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', mirror=True, ticks="outside", tickwidth=1, tickcolor='rgba(255, 255, 255, 0.08)', ticklen=5, tickangle=-45, tickformat="%m-%d %H:%M")
     fig_line.update_yaxes(showgrid=True, gridwidth=1, gridcolor='rgba(255, 255, 255, 0.08)', showline=True, linewidth=1.5, linecolor='rgba(255,255,255,0.2)', mirror=True, ticks="outside", tickwidth=1, tickcolor='rgba(255, 255, 255, 0.08)', ticklen=5)
