@@ -68,7 +68,7 @@ try:
     if not df_history.empty:
         latest = df_history.iloc[-1]
         
-        st.markdown(f"### 🐳 比特幣大戶籌碼終端 ｜ 💰 <span style='color:#ffd700'>**${latest['btc_price']:,}**</span>", unsafe_allow_html=True)
+        st.markdown(f"### 🐳 Bitget比特幣大戶籌碼終端 ｜ 💰 <span style='color:#ffd700'>**${latest['btc_price']:,}**</span>", unsafe_allow_html=True)
 
         col_left, col_right = st.columns(2)
         with col_left:
