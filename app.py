@@ -7,7 +7,7 @@ from supabase import create_client
 import os
 import time
 
-st.set_page_config(page_title="比特幣大戶籌碼監控", layout="wide")
+st.set_page_config(page_title="bitget比特幣大戶籌碼監控", layout="wide")
 
 # CSS 樣式
 st.markdown("""
@@ -92,7 +92,7 @@ try:
     if not df_history.empty:
         latest = df_history.iloc[-1]
         
-        st.markdown(f"### 🐳 比特幣大戶籌碼終端 ｜ 💰 <span style='color:#ffd700'>**${latest['btc_price']:,}**</span>", unsafe_allow_html=True)
+        st.markdown(f"### 🐳 bitget比特幣大戶籌碼終端 ｜ 💰 <span style='color:#ffd700'>**${latest['btc_price']:,}**</span>", unsafe_allow_html=True)
 
         col_left, col_right = st.columns(2)
         with col_left:
