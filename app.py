@@ -9,7 +9,7 @@ import time
 
 st.set_page_config(page_title="比特幣大戶籌碼監控", layout="wide")
 
-# 1. 🚀 極致黑化 CSS 與專業表格樣式
+# 1. 🚀 CSS 升級：專業黑魂表格與字體
 st.markdown("""
     <style>
             .stApp { background-color: #000000; color: #FFFFFF; }
@@ -20,12 +20,27 @@ st.markdown("""
             [data-testid="stMetricValue"] { font-size: 2.5rem; font-weight: bold; color: #FFFFFF !important; }
             [data-testid="stMetricLabel"] { color: rgba(255, 255, 255, 0.8) !important; font-size: 1.2rem !important; }
 
+            /* 自定義黑化表格樣式 (增加多空資金欄位) */
             .custom-table {
-                width: 100%; border-collapse: collapse; background-color: #000000; color: #FFFFFF;
-                font-family: sans-serif; font-size: 14px; margin-top: 10px;
+                width: 100%;
+                border-collapse: collapse;
+                background-color: #000000;
+                color: #FFFFFF;
+                font-family: sans-serif;
+                font-size: 14px;
+                margin-top: 10px;
             }
-            .custom-table th { background-color: #1a1a1a; color: #ffd700; text-align: left; padding: 12px; border-bottom: 2px solid #333; }
-            .custom-table td { padding: 10px; border-bottom: 1px solid #222; }
+            .custom-table th {
+                background-color: #1a1a1a;
+                color: #ffd700;
+                text-align: left;
+                padding: 12px;
+                border-bottom: 2px solid #333;
+            }
+            .custom-table td {
+                padding: 10px;
+                border-bottom: 1px solid #222;
+            }
             .custom-table tr:hover { background-color: #111; }
     </style>
     """, unsafe_allow_html=True)
@@ -40,14 +55,16 @@ def get_data_from_db():
     df = pd.DataFrame(response.data)
     if not df.empty:
         df = df.sort_values(by="time", ascending=True)
+        # 金額轉整數
         for col in ["btc_price", "oi_total_usd", "long_vol_usd", "short_vol_usd"]:
             if col in df.columns:
                 df[col] = df[col].astype(int)
     return df
 
-# 圖表全局字體與顏色設定
+# 全局圖表設定
 CHART_FONT = dict(size=14, color="white", family="Arial Black")
 TRANSPARENT = 'rgba(0,0,0,0)'
+LIGHT_GRID = 'rgba(255, 255, 255, 0.08)' # 淡化網格線
 
 try:
     df_history = get_data_from_db()
@@ -58,16 +75,16 @@ try:
 
         col_left, col_right = st.columns(2)
         with col_left:
-            # 取得帳戶比例
             l_acc = latest.get('long_acc_ratio', 0.5)
             s_acc = latest.get('short_acc_ratio', 0.5)
             st.markdown("#### 👥 帳戶共識 (人頭數)")
             st.metric("多空帳戶比", f"{l_acc/s_acc:.4f}" if s_acc != 0 else "0", delta=f"做多 {l_acc*100:.1f}%")
             
-            fig_acc = px.pie(values=[l_acc, s_acc], names=["做多", "做空"], hole=0.6,
+            # 1. 🚀 圓餅圖位置同步：做多固定在左
+            fig_acc = px.pie(values=[l_acc, s_acc], names=["做多", "做空"], hole=0.5,
                              color=["做多", "做空"], color_discrete_map={"做多": "#00e5ff", "做空": "#ff5252"})
-            # 🚀 在圓餅圖中間加字：帳戶
             fig_acc.add_annotation(text="帳戶", showarrow=False, font=dict(size=24, color="white"))
+            
             fig_acc.update_layout(height=240, margin=dict(t=10, b=10, l=10, r=10), 
                                  showlegend=True, template="plotly_dark", 
                                  paper_bgcolor=TRANSPARENT, font=CHART_FONT,
@@ -78,10 +95,11 @@ try:
             st.markdown("#### 💰 資金實力 (倉位量)")
             st.metric("多空持倉比", f"{latest['ls_ratio']:.4f}", delta=f"費率 {latest['fund_rate']*100:.4f}%")
             
-            fig_pos = px.pie(values=[latest['long_vol_usd'], latest['short_vol_usd']], names=["做多", "做空"], hole=0.6,
+            # 1. 🚀 圓餅圖位置同步：做多固定在左
+            fig_pos = px.pie(values=[latest['long_vol_usd'], latest['short_vol_usd']], names=["做多", "做空"], hole=0.5,
                              color=["做多", "做空"], color_discrete_map={"做多": "#00e5ff", "做空": "#ff5252"})
-            # 🚀 在圓餅圖中間加字：資金
             fig_pos.add_annotation(text="資金", showarrow=False, font=dict(size=24, color="white"))
+            
             fig_pos.update_layout(height=240, margin=dict(t=10, b=10, l=10, r=10), 
                                   showlegend=True, template="plotly_dark", 
                                   paper_bgcolor=TRANSPARENT, font=CHART_FONT,
@@ -90,7 +108,7 @@ try:
         
         st.divider()
         
-        # 趨勢圖表
+        # 2. 🚀 趨勢圖網格與刻度線優化
         fig_line = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[0.4, 0.2, 0.2, 0.2], specs=[[{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": False}], [{"secondary_y": False}]])
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["btc_price"], name="價格", line=dict(color="#ffd700", width=3)), row=1, col=1)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["oi_total_usd"], name="OI總額", line=dict(color="#ab47bc", width=2, dash='dot')), row=1, col=1, secondary_y=True)
@@ -98,16 +116,25 @@ try:
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["short_vol_usd"], name="空單$", line=dict(color="#ff5252", width=2)), row=2, col=1)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["ls_ratio"], name="多空比", line=dict(color="#FFFFFF", width=2.5)), row=3, col=1)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["fund_rate"], name="費率", mode="lines+markers", line=dict(color="#ff9800")), row=4, col=1)
+        
         fig_line.update_layout(template="plotly_dark", paper_bgcolor=TRANSPARENT, plot_bgcolor=TRANSPARENT, height=700, font=CHART_FONT, hovermode="x unified")
+        
+        # 淡化網格，開啟並延伸刻度線
+        fig_line.update_xaxes(showgrid=True, gridwidth=1, gridcolor=LIGHT_GRID, showline=True, linewidth=1, linecolor=LIGHT_GRID, ticks="outside", tickwidth=1, tickcolor=LIGHT_GRID, ticklen=5)
+        fig_line.update_yaxes(showgrid=True, gridwidth=1, gridcolor=LIGHT_GRID, showline=True, linewidth=1, linecolor=LIGHT_GRID, ticks="outside", tickwidth=1, tickcolor=LIGHT_GRID, ticklen=5)
+        
         st.plotly_chart(fig_line, use_container_width=True)
 
-        # 🚀 黑化 HTML 表格 (最新 20 筆)
+        # 3. 🚀 HTML 表格還原（增加多/空資金欄位）
         st.markdown("**📋 歷史巡檢紀錄 (最新 20 筆)**")
         df_20 = df_history.tail(20).iloc[::-1]
+        
         html_table = f"""
         <table class="custom-table">
-            <tr><th>時間</th><th>價格</th><th>OI 總額 (M)</th><th>多空比</th><th>費率</th></tr>
-            {"".join([f"<tr><td>{r.time}</td><td>${r.btc_price:,}</td><td>{r.oi_total_usd/1e6:.1f}M</td><td>{r.ls_ratio:.4f}</td><td>{r.fund_rate*100:.4f}%</td></tr>" for i, r in df_20.iterrows()])}
+            <tr>
+                <th>時間</th><th>價格</th><th>OI總額(M)</th><th>多單資金(M)</th><th>空單資金(M)</th><th>多空比</th><th>費率</th>
+            </tr>
+            {"".join([f"<tr><td>{r.time}</td><td>${r.btc_price:,}</td><td>{r.oi_total_usd/1e6:.1f}M</td><td>{r.long_vol_usd/1e6:.1f}M</td><td>{r.short_vol_usd/1e6:.1f}M</td><td>{r.ls_ratio:.4f}</td><td>{r.fund_rate*100:.4f}%</td></tr>" for i, r in df_20.iterrows()])}
         </table>
         """
         st.markdown(html_table, unsafe_allow_html=True)
