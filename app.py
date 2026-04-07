@@ -7,9 +7,9 @@ from supabase import create_client
 import os
 import time
 
-st.set_page_config(page_title="bitget比特幣大戶籌碼監控", layout="wide")
+st.set_page_config(page_title="比特幣大戶籌碼監控", layout="wide")
 
-# CSS 樣式 (加入凍結窗格與自訂卷軸)
+# CSS 樣式
 st.markdown("""
     <style>
             .stApp { background-color: #000000; color: #FFFFFF; }
@@ -20,7 +20,6 @@ st.markdown("""
             [data-testid="stMetricValue"] { font-size: 2.5rem; font-weight: bold; color: #FFFFFF !important; }
             [data-testid="stMetricLabel"] { color: rgba(255, 255, 255, 0.8) !important; font-size: 1.2rem !important; }
 
-            /* 自定義黑化表格與響應式滑動 */
             .table-wrapper { overflow-x: auto; margin-top: 10px; }
             .scrollable-wrapper { max-height: 400px; overflow-y: auto; overflow-x: auto; margin-top: 10px; border: 1px solid #333; }
             
@@ -28,7 +27,6 @@ st.markdown("""
                 width: 100%; border-collapse: collapse; background-color: #000000; color: #FFFFFF;
                 font-family: sans-serif; font-size: 14px; min-width: 700px;
             }
-            /* 凍結表頭設定 */
             .custom-table th { 
                 background-color: #1a1a1a; color: #ffd700; text-align: left; 
                 padding: 12px; border-bottom: 2px solid #333; white-space: nowrap;
@@ -37,7 +35,6 @@ st.markdown("""
             .custom-table td { padding: 10px; border-bottom: 1px solid #222; white-space: nowrap; }
             .custom-table tr:hover { background-color: #111; }
             
-            /* 自訂捲軸樣式 (網頁版 Webkit) */
             ::-webkit-scrollbar { width: 8px; height: 8px; }
             ::-webkit-scrollbar-track { background: #000000; }
             ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
@@ -45,13 +42,12 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# 資料庫連線
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def get_data_from_db():
-    # 約第 45 行
+    # 🚀 這裡已經幫你修改為 1500 筆 (約一個月的資料量)
     response = supabase.table("whale_data").select("*").order("time", desc=True).limit(1500).execute()
     df = pd.DataFrame(response.data)
     if not df.empty:
@@ -71,7 +67,6 @@ def get_data_from_db():
             df['ls_acc_ratio'] = None
     return df
 
-# 表格生成函式 (讓代碼更簡潔)
 def build_html_table(df_to_render):
     rows = []
     for _, r in df_to_render.iterrows():
@@ -97,7 +92,7 @@ try:
     if not df_history.empty:
         latest = df_history.iloc[-1]
         
-        st.markdown(f"### 🐳 bitget比特幣大戶籌碼終端 ｜ 💰 <span style='color:#ffd700'>**${latest['btc_price']:,}**</span>", unsafe_allow_html=True)
+        st.markdown(f"### 🐳 比特幣大戶籌碼終端 ｜ 💰 <span style='color:#ffd700'>**${latest['btc_price']:,}**</span>", unsafe_allow_html=True)
 
         col_left, col_right = st.columns(2)
         with col_left:
@@ -141,14 +136,13 @@ try:
         
         st.plotly_chart(fig_line, use_container_width=True)
 
-        # 渲染頂部最新 20 筆
         st.markdown("**📋 歷史巡檢紀錄 (最新 20 筆)**")
         df_20 = df_history.tail(20).iloc[::-1]
         st.markdown(f'<div class="table-wrapper">{build_html_table(df_20)}</div>', unsafe_allow_html=True)
 
-        # 展開改為 1500 筆
+        # 🚀 這裡完美修正了縮排錯誤
         with st.expander("📂 展開完整數據紀錄 (1500 筆 / 約一個月)"):
-        st.markdown(f'<div class="scrollable-wrapper">{build_html_table(df_history.iloc[::-1])}</div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="scrollable-wrapper">{build_html_table(df_history.iloc[::-1])}</div>', unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"連線失敗: {e}")
