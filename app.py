@@ -7,9 +7,9 @@ from supabase import create_client
 import os
 import time
 
-st.set_page_config(page_title="比特幣大戶籌碼監控終端", layout="wide")
+st.set_page_config(page_title="比特幣大戶籌碼監控", layout="wide")
 
-# 1. 🚀 CSS 升級：包含黑化表格樣式與字體強化
+# 1. 🚀 極致黑化 CSS 與專業表格樣式
 st.markdown("""
     <style>
             .stApp { background-color: #000000; color: #FFFFFF; }
@@ -20,27 +20,12 @@ st.markdown("""
             [data-testid="stMetricValue"] { font-size: 2.5rem; font-weight: bold; color: #FFFFFF !important; }
             [data-testid="stMetricLabel"] { color: rgba(255, 255, 255, 0.8) !important; font-size: 1.2rem !important; }
 
-            /* 自定義黑化表格樣式 */
             .custom-table {
-                width: 100%;
-                border-collapse: collapse;
-                background-color: #000000;
-                color: #FFFFFF;
-                font-family: sans-serif;
-                font-size: 14px;
-                margin-top: 10px;
+                width: 100%; border-collapse: collapse; background-color: #000000; color: #FFFFFF;
+                font-family: sans-serif; font-size: 14px; margin-top: 10px;
             }
-            .custom-table th {
-                background-color: #1a1a1a;
-                color: #ffd700;
-                text-align: left;
-                padding: 12px;
-                border-bottom: 2px solid #333;
-            }
-            .custom-table td {
-                padding: 10px;
-                border-bottom: 1px solid #222;
-            }
+            .custom-table th { background-color: #1a1a1a; color: #ffd700; text-align: left; padding: 12px; border-bottom: 2px solid #333; }
+            .custom-table td { padding: 10px; border-bottom: 1px solid #222; }
             .custom-table tr:hover { background-color: #111; }
     </style>
     """, unsafe_allow_html=True)
@@ -61,7 +46,7 @@ def get_data_from_db():
     return df
 
 # 圖表全局字體與顏色設定
-CHART_FONT = dict(size=15, color="white", family="Arial Black")
+CHART_FONT = dict(size=14, color="white", family="Arial Black")
 TRANSPARENT = 'rgba(0,0,0,0)'
 
 try:
@@ -69,35 +54,43 @@ try:
     if not df_history.empty:
         latest = df_history.iloc[-1]
         
-        st.markdown(f"### 🐳 比特幣主力籌碼監控 ｜ 💰 <span style='color:#ffd700'>**${latest['btc_price']:,}**</span>", unsafe_allow_html=True)
+        st.markdown(f"### 🐳 比特幣大戶籌碼終端 ｜ 💰 <span style='color:#ffd700'>**${latest['btc_price']:,}**</span>", unsafe_allow_html=True)
 
         col_left, col_right = st.columns(2)
         with col_left:
+            # 取得帳戶比例
             l_acc = latest.get('long_acc_ratio', 0.5)
             s_acc = latest.get('short_acc_ratio', 0.5)
+            st.markdown("#### 👥 帳戶共識 (人頭數)")
             st.metric("多空帳戶比", f"{l_acc/s_acc:.4f}" if s_acc != 0 else "0", delta=f"做多 {l_acc*100:.1f}%")
             
-            fig_acc = px.pie(values=[l_acc, s_acc], names=["做多", "做空"], hole=0.5,
+            fig_acc = px.pie(values=[l_acc, s_acc], names=["做多", "做空"], hole=0.6,
                              color=["做多", "做空"], color_discrete_map={"做多": "#00e5ff", "做空": "#ff5252"})
-            fig_acc.update_layout(height=220, margin=dict(t=10, b=10, l=10, r=10), 
+            # 🚀 在圓餅圖中間加字：帳戶
+            fig_acc.add_annotation(text="帳戶", showarrow=False, font=dict(size=24, color="white"))
+            fig_acc.update_layout(height=240, margin=dict(t=10, b=10, l=10, r=10), 
                                  showlegend=True, template="plotly_dark", 
                                  paper_bgcolor=TRANSPARENT, font=CHART_FONT,
-                                 legend=dict(font=dict(size=14), bgcolor="rgba(0,0,0,0.5)")) 
+                                 legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5)) 
             st.plotly_chart(fig_acc, use_container_width=True)
 
         with col_right:
+            st.markdown("#### 💰 資金實力 (倉位量)")
             st.metric("多空持倉比", f"{latest['ls_ratio']:.4f}", delta=f"費率 {latest['fund_rate']*100:.4f}%")
-            fig_pos = px.pie(values=[latest['long_vol_usd'], latest['short_vol_usd']], names=["做多", "做空"], hole=0.5,
+            
+            fig_pos = px.pie(values=[latest['long_vol_usd'], latest['short_vol_usd']], names=["做多", "做空"], hole=0.6,
                              color=["做多", "做空"], color_discrete_map={"做多": "#00e5ff", "做空": "#ff5252"})
-            fig_pos.update_layout(height=220, margin=dict(t=10, b=10, l=10, r=10), 
+            # 🚀 在圓餅圖中間加字：資金
+            fig_pos.add_annotation(text="資金", showarrow=False, font=dict(size=24, color="white"))
+            fig_pos.update_layout(height=240, margin=dict(t=10, b=10, l=10, r=10), 
                                   showlegend=True, template="plotly_dark", 
                                   paper_bgcolor=TRANSPARENT, font=CHART_FONT,
-                                  legend=dict(font=dict(size=14), bgcolor="rgba(0,0,0,0.5)"))
+                                  legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5))
             st.plotly_chart(fig_pos, use_container_width=True)
         
         st.divider()
         
-        # 2. 🚀 趨勢圖字體強化
+        # 趨勢圖表
         fig_line = make_subplots(rows=4, cols=1, shared_xaxes=True, vertical_spacing=0.03, row_heights=[0.4, 0.2, 0.2, 0.2], specs=[[{"secondary_y": True}], [{"secondary_y": False}], [{"secondary_y": False}], [{"secondary_y": False}]])
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["btc_price"], name="價格", line=dict(color="#ffd700", width=3)), row=1, col=1)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["oi_total_usd"], name="OI總額", line=dict(color="#ab47bc", width=2, dash='dot')), row=1, col=1, secondary_y=True)
@@ -105,21 +98,15 @@ try:
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["short_vol_usd"], name="空單$", line=dict(color="#ff5252", width=2)), row=2, col=1)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["ls_ratio"], name="多空比", line=dict(color="#FFFFFF", width=2.5)), row=3, col=1)
         fig_line.add_trace(go.Scatter(x=df_history["time"], y=df_history["fund_rate"], name="費率", mode="lines+markers", line=dict(color="#ff9800")), row=4, col=1)
-        
         fig_line.update_layout(template="plotly_dark", paper_bgcolor=TRANSPARENT, plot_bgcolor=TRANSPARENT, height=700, font=CHART_FONT, hovermode="x unified")
-        fig_line.update_xaxes(tickfont=dict(size=12), gridcolor="rgba(255,255,255,0.1)")
-        fig_line.update_yaxes(tickfont=dict(size=12), gridcolor="rgba(255,255,255,0.1)")
         st.plotly_chart(fig_line, use_container_width=True)
 
-        # 3. 🚀 使用 HTML 渲染黑化表格 (最新 20 筆)
+        # 🚀 黑化 HTML 表格 (最新 20 筆)
         st.markdown("**📋 歷史巡檢紀錄 (最新 20 筆)**")
         df_20 = df_history.tail(20).iloc[::-1]
-        
         html_table = f"""
         <table class="custom-table">
-            <tr>
-                <th>時間</th><th>價格</th><th>OI 總額 (M)</th><th>多空比</th><th>費率</th>
-            </tr>
+            <tr><th>時間</th><th>價格</th><th>OI 總額 (M)</th><th>多空比</th><th>費率</th></tr>
             {"".join([f"<tr><td>{r.time}</td><td>${r.btc_price:,}</td><td>{r.oi_total_usd/1e6:.1f}M</td><td>{r.ls_ratio:.4f}</td><td>{r.fund_rate*100:.4f}%</td></tr>" for i, r in df_20.iterrows()])}
         </table>
         """
