@@ -3,7 +3,7 @@ name: BTC Data Collector
 on:
   schedule:
     # 這行代表每 30 分鐘執行一次 (Cron 語法)
-    - cron: '*/30 * * * *'
+    - cron: '0/30 * * * *'
   workflow_dispatch: # 這行讓你可以在 GitHub 頁面上手動點擊執行測試
 
 jobs:
