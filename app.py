@@ -71,8 +71,8 @@ def build_html_table(df_to_render):
     for _, r in df_to_render.iterrows():
         time_str = r.time.strftime('%Y-%m-%d %H:%M:%S')
         acc_ratio_str = f"{r.ls_acc_ratio:.4f}" if pd.notnull(r.get('ls_acc_ratio')) else "N/A"
-        # 🚀 這裡將除數改為 10 億 (1000000000)，並保留 3 位小數搭配單位 'B'
-        rows.append(f"<tr><td>{time_str}</td><td>${r.btc_price:,}</td><td>{r.long_vol_usd/1000000000:.3f}B</td><td>{r.short_vol_usd/1000000000:.3f}B</td><td>{acc_ratio_str}</td><td>{r.ls_ratio:.4f}</td></tr>")
+        # 🚀 移除數字後面的 'B'，保持版面乾淨純粹
+        rows.append(f"<tr><td>{time_str}</td><td>${r.btc_price:,}</td><td>{r.long_vol_usd/1000000000:.3f}</td><td>{r.short_vol_usd/1000000000:.3f}</td><td>{acc_ratio_str}</td><td>{r.ls_ratio:.4f}</td></tr>")
     
     return f"""
     <table class="custom-table">
