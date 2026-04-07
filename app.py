@@ -7,7 +7,7 @@ from supabase import create_client
 import os
 import time
 
-st.set_page_config(page_title="比特幣大戶籌碼監控", layout="wide")
+st.set_page_config(page_title="Bitget比特幣大戶籌碼監控", layout="wide")
 
 # CSS 樣式 (加入表格的 RWD 左右滑動設定)
 st.markdown("""
