@@ -1,5 +1,5 @@
 import streamlit as st
-#from streamlit_autorefresh import st_autorefresh
+from streamlit_autorefresh import st_autorefresh
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -167,7 +167,7 @@ try:
 except Exception as e:
     st.error(f"連線失敗: {e}")
     
-time.sleep(300)
-st.rerun()
+#time.sleep(300)
+#st.rerun()
 # 刪掉原本那兩行，換成這一行
-#st_autorefresh(interval=300000, key="data_refresher")
+st_autorefresh(interval=300000, key="data_refresher")
