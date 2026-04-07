@@ -47,12 +47,14 @@ SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 def get_data_from_db():
-    # 🚀 這裡已經幫你修改為 1500 筆 (約一個月的資料量)
     response = supabase.table("whale_data").select("*").order("time", desc=True).limit(1500).execute()
     df = pd.DataFrame(response.data)
     if not df.empty:
         df = df.sort_values(by="time", ascending=True)
-        df['time'] = pd.to_datetime(df['time'])
+        
+        # 🚀 關鍵修正：將 UTC 時間加上 8 小時，轉換為台灣時間 (東八區)
+        df['time'] = pd.to_datetime(df['time']) + pd.Timedelta(hours=8)
+        
         for col in ["btc_price", "oi_total_usd", "long_vol_usd", "short_vol_usd"]:
             if col in df.columns:
                 df[col] = df[col].astype(int)
